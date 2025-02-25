@@ -7,11 +7,10 @@ Created on Mon Feb 21 11:24:15 2022
 Template for exercise 1
 (genetic algorithm module specification)
 """
-import mastermind as mm
+import cities 
 import random
 
 
-MATCH = mm.MastermindMatch(secret_size=4)
 
 
 class Individual:
@@ -52,8 +51,9 @@ class GASolver:
     def reset_population(self, pop_size=50):
         """ Initialize the population with pop_size random Individuals """
         for i in range(pop_size): 
-            chromosome = MATCH.generate_random_guess()
-            fitness = MATCH.rate_guess(chromosome)
+            chromosome = cities.default_road(city_dict) 
+            random.shuffle(chromosome) 
+            fitness = - cities.road_length(city_dict, chromosome) 
             new_individual = Individual(chromosome, fitness)
             self._population.append(new_individual)
 
@@ -79,25 +79,40 @@ class GASolver:
         for baby in range(number_of_birth_needed):
             parent1 = self._population[baby] 
             parent2 = self._population[baby+1] # elitist behaviour: we make reproduce only the best individuals #KIFFEUR 
-            crossing_point = random.randrange(0, len(parent1.chromosome))
-            new_chromosome = parent1.chromosome[0:crossing_point] + parent2.chromosome[crossing_point:] #we concatenate the chromosomes of each parent
+            crossing_point = len(parent1.chromosome)//2
+            new_chromosome = parent1.chromosome[0:crossing_point] 
+            for city in parent2.chromosome: #we add all the cities from the parent 2 which are not already in the children's itinerary
+                if (city in new_chromosome) == False :
+                    new_chromosome.append(city)
 
-
+            possible_cities = cities.default_road(city_dict)  #and if some cities were not added, we add them from the list of all possible cities
+            for city in possible_cities:
+                if (city in new_chromosome) == False :
+                    new_chromosome.append(city)
             #MUTATION
             number = random.random()
             if number < self._mutation_rate:
-                valid_colors = mm.get_possible_colors()
-                new_gene = random.choice(valid_colors) #we randomly chose a new mutation color
-                gene_mutated = random.randrange(0, len(new_chromosome)) #we randomly select the gene mutated
-                new_chromosome[gene_mutated] = new_gene #we apply the color to the new gene selected
-            fitness=MATCH.rate_guess(new_chromosome)
+                gene_mutated = random.randrange(1, len(new_chromosome)) #we randomly select the gene mutated (starting from the second)
+                #then we switch the gene with the one before him
+                temp_gene = new_chromosome[gene_mutated] 
+                new_chromosome[gene_mutated]=new_chromosome[gene_mutated-1]
+                new_chromosome[gene_mutated-1]=temp_gene
+            fitness = - cities.road_length(city_dict, new_chromosome) 
             new_individual = Individual(new_chromosome, fitness) #we create a new individual
             self._population.append(new_individual)
-
+        #cities.draw_cities(city_dict, self._population[0].chromosome) 
         pass  # REPLACE WITH YOUR CODE
 
     def show_generation_summary(self):
         """ Print some debug information on the current state of the population """
+        self._population.sort(key=lambda ind: ind.fitness, reverse = True)
+        #print(f"Best chromosome length : {cities.road_length(city_dict, self._population[0].chromosome)}")
+        #print(f"Median chromosome length : {cities.road_length(city_dict, self._population[len(self._population)//2].chromosome)}")
+        total_road=0
+
+        for road in range(len(self._population)):
+            total_road+=cities.road_length(city_dict,self._population[road].chromosome)
+        print(f"Mean chromosome length : {total_road/len(self._population)}")
         pass  # REPLACE WITH YOUR CODE
 
     def get_best_individual(self):
@@ -105,22 +120,26 @@ class GASolver:
         return max(self._population, key= lambda ind: ind.fitness)
         pass  # REPLACE WITH YOUR CODE
 
-    def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
+    def evolve_until(self, max_nb_of_generations=4000, threshold_fitness=None):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
             - Max nb of generation is achieved
             - The fitness of the best Individual is greater than or equal to
               threshold_fitness
         """
         nb_of_generations = 0
-        while nb_of_generations < max_nb_of_generations and self.get_best_individual().fitness < threshold_fitness:
+        while nb_of_generations < max_nb_of_generations :# and self.get_best_individual().fitness < threshold_fitness:
             self.evolve_for_one_generation()
+            print(f"Generation number {nb_of_generations}")
+            self.show_generation_summary()
+            nb_of_generations += 1
 
         pass  # REPLACE WITH YOUR CODE
 
+city_dict = cities.load_cities("cities.txt") 
 #we run a game
-solver = GASolver()
-solver.reset_population()
-solver.evolve_until(threshold_fitness=MATCH.max_score())
-best = solver.get_best_individual()
-print(f"Best guess {best.chromosome}")
-print(f"Problem solved? {MATCH.is_correct(best.chromosome)}")
+solver = GASolver() 
+solver.reset_population() 
+solver.evolve_until() 
+best = solver.get_best_individual() 
+print (cities.road_length(city_dict, best.chromosome))
+cities.draw_cities(city_dict, best.chromosome) 
