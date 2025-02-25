@@ -112,7 +112,6 @@ class GASolver:
               threshold_fitness
         """
         nb_of_generations = 0
-        #self._population.sort(key=lambda ind: ind.fitness, reverse = True)
         while nb_of_generations < max_nb_of_generations and self.get_best_individual().fitness < threshold_fitness:
             self.evolve_for_one_generation()
 
