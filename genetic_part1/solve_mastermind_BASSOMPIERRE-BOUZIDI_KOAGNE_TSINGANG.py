@@ -102,7 +102,7 @@ class GASolver:
 
     def get_best_individual(self):
         """ Return the best Individual of the population """
-        return self._population[0]
+        return max(self._population, key= lambda ind: ind.fitness)
         pass  # REPLACE WITH YOUR CODE
 
     def evolve_until(self, max_nb_of_generations=500, threshold_fitness=None):
@@ -112,8 +112,8 @@ class GASolver:
               threshold_fitness
         """
         nb_of_generations = 0
-        self._population.sort(key=lambda ind: ind.fitness, reverse = True)
-        while nb_of_generations < max_nb_of_generations and self._population[0].fitness < threshold_fitness:
+        #self._population.sort(key=lambda ind: ind.fitness, reverse = True)
+        while nb_of_generations < max_nb_of_generations and self.get_best_individual().fitness < threshold_fitness:
             self.evolve_for_one_generation()
 
         pass  # REPLACE WITH YOUR CODE
