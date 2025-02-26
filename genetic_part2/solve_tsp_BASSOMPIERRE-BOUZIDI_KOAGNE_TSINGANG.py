@@ -10,9 +10,6 @@ Template for exercise 1
 import cities 
 import random
 
-
-
-
 class Individual:
     """Represents an Individual for a genetic algorithm"""
 
@@ -37,7 +34,7 @@ class Individual:
 
 
 class GASolver:
-    def __init__(self, selection_rate=0.5, mutation_rate=0.1):
+    def __init__(self, selection_rate=0.5, mutation_rate=0.7):
         """Initializes an instance of a ga_solver for a given GAProblem
 
         Args:
@@ -48,7 +45,7 @@ class GASolver:
         self._mutation_rate = mutation_rate
         self._population = []
 
-    def reset_population(self, pop_size=50):
+    def reset_population(self, pop_size=200):
         """ Initialize the population with pop_size random Individuals """
         for i in range(pop_size): 
             chromosome = cities.default_road(city_dict) 
@@ -77,42 +74,48 @@ class GASolver:
         number_of_birth_needed = size_required-len(self._population) #we want to create as much inidividuals as the ones deleted
         
         for baby in range(number_of_birth_needed):
-            parent1 = self._population[baby] 
-            parent2 = self._population[baby+1] # elitist behaviour: we make reproduce only the best individuals #KIFFEUR 
+            parent1, parent2 = random.sample(self._population, 2)  
+            #we add the first half of the first parent
             crossing_point = len(parent1.chromosome)//2
             new_chromosome = parent1.chromosome[0:crossing_point] 
-            for city in parent2.chromosome: #we add all the cities from the parent 2 which are not already in the children's itinerary
+            #we add all the cities from the parent 2 which are not already in the children's itinerary
+            for city in parent2.chromosome[crossing_point:]:
                 if (city in new_chromosome) == False :
                     new_chromosome.append(city)
-
-            possible_cities = cities.default_road(city_dict)  #and if some cities were not added, we add them from the list of all possible cities
+            #and if some cities were not added, we add them from the list of all possible cities
+            possible_cities = cities.default_road(city_dict) 
             for city in possible_cities:
+ 
                 if (city in new_chromosome) == False :
                     new_chromosome.append(city)
             #MUTATION
             number = random.random()
             if number < self._mutation_rate:
-                gene_mutated = random.randrange(1, len(new_chromosome)) #we randomly select the gene mutated (starting from the second)
-                #then we switch the gene with the one before him
-                temp_gene = new_chromosome[gene_mutated] 
-                new_chromosome[gene_mutated]=new_chromosome[gene_mutated-1]
-                new_chromosome[gene_mutated-1]=temp_gene
+                #we randomly select two genes mutated which will be swapped
+                gene_mutated1 = random.randrange(0, len(new_chromosome)) 
+                gene_mutated2 = random.randrange(0, len(new_chromosome))
+               
+                #we use a temporary variable to swap them
+                temp_gene = new_chromosome[gene_mutated1] 
+                new_chromosome[gene_mutated1]=new_chromosome[gene_mutated2]
+                new_chromosome[gene_mutated2]=temp_gene
+
             fitness = - cities.road_length(city_dict, new_chromosome) 
-            new_individual = Individual(new_chromosome, fitness) #we create a new individual
+            new_individual = Individual(new_chromosome, fitness) #we create the new individual
             self._population.append(new_individual)
-        #cities.draw_cities(city_dict, self._population[0].chromosome) 
         pass  # REPLACE WITH YOUR CODE
 
     def show_generation_summary(self):
         """ Print some debug information on the current state of the population """
         self._population.sort(key=lambda ind: ind.fitness, reverse = True)
-        #print(f"Best chromosome length : {cities.road_length(city_dict, self._population[0].chromosome)}")
-        #print(f"Median chromosome length : {cities.road_length(city_dict, self._population[len(self._population)//2].chromosome)}")
-        total_road=0
+        print(f"Best chromosome length : {cities.road_length(city_dict, self._population[0].chromosome)}")
+        print(f"Median chromosome length : {cities.road_length(city_dict, self._population[len(self._population)//2].chromosome)}")
+        total_road = 0
 
         for road in range(len(self._population)):
             total_road+=cities.road_length(city_dict,self._population[road].chromosome)
         print(f"Mean chromosome length : {total_road/len(self._population)}")
+        
         pass  # REPLACE WITH YOUR CODE
 
     def get_best_individual(self):
@@ -120,7 +123,7 @@ class GASolver:
         return max(self._population, key= lambda ind: ind.fitness)
         pass  # REPLACE WITH YOUR CODE
 
-    def evolve_until(self, max_nb_of_generations=4000, threshold_fitness=None):
+    def evolve_until(self, max_nb_of_generations=100, threshold_fitness=None):
         """ Launch the evolve_for_one_generation function until one of the two condition is achieved : 
             - Max nb of generation is achieved
             - The fitness of the best Individual is greater than or equal to
@@ -129,7 +132,6 @@ class GASolver:
         nb_of_generations = 0
         while nb_of_generations < max_nb_of_generations :# and self.get_best_individual().fitness < threshold_fitness:
             self.evolve_for_one_generation()
-            print(f"Generation number {nb_of_generations}")
             self.show_generation_summary()
             nb_of_generations += 1
 
