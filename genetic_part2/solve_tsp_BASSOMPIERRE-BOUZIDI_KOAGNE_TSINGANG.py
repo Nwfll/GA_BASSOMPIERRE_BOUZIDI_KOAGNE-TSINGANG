@@ -132,7 +132,7 @@ class GASolver:
         nb_of_generations = 0
         while nb_of_generations < max_nb_of_generations :# and self.get_best_individual().fitness < threshold_fitness:
             self.evolve_for_one_generation()
-            self.show_generation_summary()
+            #self.show_generation_summary()  #uncomment if you want to see the summary 
             nb_of_generations += 1
 
         pass  # REPLACE WITH YOUR CODE
