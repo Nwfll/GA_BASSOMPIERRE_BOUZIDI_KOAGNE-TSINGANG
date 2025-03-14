@@ -35,7 +35,8 @@ class Individual:
 
 class GAProblem:
     """Defines a Genetic algorithm problem to be solved by ga_solver"""
-    pass  # REPLACE WITH YOUR CODE
+    def __init__(self):
+        pass  # REPLACE WITH YOUR CODE
 
 
 class GASolver:
