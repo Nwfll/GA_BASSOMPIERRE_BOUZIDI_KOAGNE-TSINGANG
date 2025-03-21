@@ -21,6 +21,7 @@ Each problem should **inherit from `GAProblem`** and implement the following met
 ### 2. Example: Implementing a Custom Problem
 
 tsp_problem.py is an example of implementing a **simple problem**, where the goal is to find the shortest route to cross several cities.
+mastermind_problem.py is another example, where the goal is to guess the colors of a mastermind game.
 
 
 # Running the genetic algorithm solver
